@@ -791,13 +791,26 @@ const _supa = supabase.createClient(
 );
 let authMode = 'login';
 let appInitialized = false;
+let isRecoveryMode = false;
+
+// Detectar recuperación desde la URL antes de que disparen los eventos de auth
+(function() {
+  const hash = new URLSearchParams(window.location.hash.replace('#',''));
+  const search = new URLSearchParams(window.location.search);
+  if (hash.get('type') === 'recovery' || search.get('type') === 'recovery') {
+    isRecoveryMode = true;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+  }
+})();
 
 _supa.auth.onAuthStateChange((event, session) => {
   if (event === 'PASSWORD_RECOVERY') {
+    isRecoveryMode = true;
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
     showRecovery();
-  } else if (session) {
+  } else if (session && !isRecoveryMode) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
     if (!appInitialized) {
@@ -805,7 +818,7 @@ _supa.auth.onAuthStateChange((event, session) => {
       try { loadConfig(); loadVentas(); calcAll(); renderHistorial(); renderClientes(); renderProyeccion(); }
       catch(e) { console.error('Error al inicializar:', e); }
     }
-  } else {
+  } else if (!session && !isRecoveryMode) {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-content').style.display = 'none';
   }
@@ -893,11 +906,17 @@ async function handleUpdatePassword() {
   if (p1 !== p2) { showAuthMsg('Las contraseñas no coinciden.', false); return; }
   try {
     const { error } = await _supa.auth.updateUser({ password: p1 });
-    if (error) showAuthMsg(authErrMsg(error.message), false);
-    else showAuthMsg('¡Contraseña actualizada! Iniciando sesión...', true);
+    if (error) {
+      showAuthMsg(authErrMsg(error.message), false);
+    } else {
+      isRecoveryMode = false;
+      showAuthMsg('¡Contraseña actualizada! Ya puedes iniciar sesión.', true);
+      setTimeout(() => { showLogin(); }, 2000);
+    }
   } catch(e) { showAuthMsg('Error. Intenta de nuevo.', false); }
 }
 async function handleLogout() {
+  if (isRecoveryMode) return;
   appInitialized = false;
   await _supa.auth.signOut();
 }
