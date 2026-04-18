@@ -868,7 +868,7 @@ async function handleSignup() {
   if (pass.length < 6)  { showAuthMsg('La contraseña debe tener mínimo 6 caracteres.', false); return; }
   if (pass !== confirm) { showAuthMsg('Las contraseñas no coinciden.', false); return; }
   try {
-    const { data, error } = await _supa.from('allowed_emails').select('email').eq('email', email).single();
+    const { data, error } = await _supa.from('lista_blanca').select('email').eq('email', email).single();
     if (error || !data) {
       showAuthMsg('Tu correo no está autorizado. Contacta a Cinthia Arena para acceder.', false);
       return;
