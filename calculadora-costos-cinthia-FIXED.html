@@ -192,15 +192,36 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
         <div id="form-login">
           <div style="margin-bottom:12px;">
             <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Email</label>
-            <input type="email" id="auth-email" placeholder="tu@email.com" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleAuthSubmit()">
+            <input type="email" id="auth-email" placeholder="tu@email.com" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleLogin()">
           </div>
           <div style="margin-bottom:16px;">
             <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Contraseña</label>
-            <input type="password" id="auth-password" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleAuthSubmit()">
+            <input type="password" id="auth-password" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleLogin()">
           </div>
-          <button class="btn-registrar" id="auth-btn" onclick="handleAuthSubmit()"><span>🔑</span> <span id="auth-btn-text">Iniciar sesión</span></button>
+          <button class="btn-registrar" onclick="handleLogin()"><span>🔑</span> Iniciar sesión</button>
           <div style="text-align:center;margin-top:12px;">
             <button onclick="showForgot()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</button>
+          </div>
+          <div class="divider" style="margin:14px 0;"></div>
+          <p style="text-align:center;font-size:11px;color:#888;">¿Primera vez? <button onclick="showSignup()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Registrarse</button></p>
+        </div>
+        <div id="form-signup" style="display:none;">
+          <p style="font-size:11px;color:#666;margin-bottom:14px;line-height:1.5;">Solo correos autorizados pueden registrarse.</p>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Email</label>
+            <input type="email" id="signup-email" placeholder="tu@email.com" class="wfull" style="width:100%;background:var(--blanco);">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Contraseña</label>
+            <input type="password" id="signup-password" placeholder="Mínimo 6 caracteres" class="wfull" style="width:100%;background:var(--blanco);">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Confirmar contraseña</label>
+            <input type="password" id="signup-confirm" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);">
+          </div>
+          <button class="btn-registrar" onclick="handleSignup()"><span>✨</span> Crear cuenta</button>
+          <div style="text-align:center;margin-top:12px;">
+            <button onclick="showLogin()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;">← Ya tengo cuenta</button>
           </div>
         </div>
         <div id="form-forgot" style="display:none;">
@@ -800,15 +821,23 @@ function clearAuthMsg() { document.getElementById('auth-msg').style.display = 'n
 
 function showLogin() {
   document.getElementById('form-login').style.display = 'block';
+  document.getElementById('form-signup').style.display = 'none';
   document.getElementById('form-forgot').style.display = 'none';
   document.getElementById('form-recovery').style.display = 'none';
   document.getElementById('auth-title').textContent = 'Iniciar sesión';
-  authMode = 'login';
-  document.getElementById('auth-btn-text').textContent = 'Iniciar sesión';
+  clearAuthMsg();
+}
+function showSignup() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-signup').style.display = 'block';
+  document.getElementById('form-forgot').style.display = 'none';
+  document.getElementById('form-recovery').style.display = 'none';
+  document.getElementById('auth-title').textContent = 'Registrarse';
   clearAuthMsg();
 }
 function showForgot() {
   document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-signup').style.display = 'none';
   document.getElementById('form-forgot').style.display = 'block';
   document.getElementById('form-recovery').style.display = 'none';
   document.getElementById('auth-title').textContent = 'Recuperar contraseña';
@@ -816,32 +845,38 @@ function showForgot() {
 }
 function showRecovery() {
   document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-signup').style.display = 'none';
   document.getElementById('form-forgot').style.display = 'none';
   document.getElementById('form-recovery').style.display = 'block';
   document.getElementById('auth-title').textContent = 'Nueva contraseña';
   clearAuthMsg();
 }
-function toggleSignup() {
-  authMode = authMode === 'login' ? 'signup' : 'login';
-  const s = authMode === 'signup';
-  document.getElementById('auth-title').textContent = s ? 'Crear cuenta' : 'Iniciar sesión';
-  document.getElementById('auth-btn-text').textContent = s ? 'Crear cuenta' : 'Iniciar sesión';
-  clearAuthMsg();
-}
-async function handleAuthSubmit() {
+async function handleLogin() {
   const email = document.getElementById('auth-email').value.trim();
   const pass  = document.getElementById('auth-password').value;
   if (!email || !pass) { showAuthMsg('Completa todos los campos.', false); return; }
-  const btn = document.getElementById('auth-btn');
-  btn.disabled = true; btn.style.opacity = '0.7';
   try {
-    const res = authMode === 'login'
-      ? await _supa.auth.signInWithPassword({ email, password: pass })
-      : await _supa.auth.signUp({ email, password: pass });
-    if (res.error) showAuthMsg(authErrMsg(res.error.message), false);
-    else if (authMode === 'signup') showAuthMsg('¡Cuenta creada! Revisa tu email para confirmar.', true);
+    const { error } = await _supa.auth.signInWithPassword({ email, password: pass });
+    if (error) showAuthMsg(authErrMsg(error.message), false);
   } catch(e) { showAuthMsg('Error de conexión. Intenta de nuevo.', false); }
-  btn.disabled = false; btn.style.opacity = '1';
+}
+async function handleSignup() {
+  const email   = document.getElementById('signup-email').value.trim();
+  const pass    = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+  if (!email || !pass) { showAuthMsg('Completa todos los campos.', false); return; }
+  if (pass.length < 6)  { showAuthMsg('La contraseña debe tener mínimo 6 caracteres.', false); return; }
+  if (pass !== confirm) { showAuthMsg('Las contraseñas no coinciden.', false); return; }
+  try {
+    const { data, error } = await _supa.from('allowed_emails').select('email').eq('email', email).single();
+    if (error || !data) {
+      showAuthMsg('Tu correo no está autorizado. Contacta a Cinthia Arena para acceder.', false);
+      return;
+    }
+    const { error: signUpError } = await _supa.auth.signUp({ email, password: pass });
+    if (signUpError) showAuthMsg(authErrMsg(signUpError.message), false);
+    else showAuthMsg('¡Cuenta creada! Ya puedes iniciar sesión.', true);
+  } catch(e) { showAuthMsg('Error de conexión. Intenta de nuevo.', false); }
 }
 async function handleForgotPassword() {
   const email = document.getElementById('forgot-email').value.trim();
