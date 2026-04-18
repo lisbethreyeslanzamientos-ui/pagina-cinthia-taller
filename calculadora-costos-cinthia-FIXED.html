@@ -458,7 +458,6 @@ const $ = id => document.getElementById(id);
 const usd = v => (v < 0 ? '-' : '') + '$' + Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const pct = (p, t) => t ? (p/t*100).toFixed(1)+'%' : '-';
 const gv  = id => parseFloat($(id).value) || 0;
-
 function getMesKey(date) {
   const d = new Date(date);
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
@@ -476,30 +475,51 @@ function initials(name) {
   return name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 }
 
-// ─── LOCALSTORAGE ────────────────────────────────────────────
+// ─── SUPABASE DATA ────────────────────────────────────────────
+let _cfSaveTimer = null;
 function saveConfig() {
+  clearTimeout(_cfSaveTimer);
+  _cfSaveTimer = setTimeout(_doSaveConfig, 800);
+}
+async function _doSaveConfig() {
+  if (!window._uid) return;
+  const datos = {};
+  for (let i=1;i<=10;i++) datos['cf'+i] = gv('cf'+i);
+  datos['prendas_mes'] = gv('prendas-mes');
   try {
-    const cfg = {};
-    for (let i=1;i<=10;i++) cfg['cf'+i] = gv('cf'+i);
-    cfg['prendas-mes'] = gv('prendas-mes');
-    localStorage.setItem('ca_config', JSON.stringify(cfg));
+    await _supa.from('costos_fijos').upsert({ user_id: window._uid, datos }, { onConflict: 'user_id' });
   } catch(e) {}
 }
-function loadConfig() {
+async function loadConfig() {
+  if (!window._uid) return;
   try {
-    const cfg = JSON.parse(localStorage.getItem('ca_config') || '{}');
-    for (let i=1;i<=10;i++) if (cfg['cf'+i] !== undefined) $('cf'+i).value = cfg['cf'+i];
-    if (cfg['prendas-mes']) $('prendas-mes').value = cfg['prendas-mes'];
+    const { data } = await _supa.from('costos_fijos').select('datos').eq('user_id', window._uid).maybeSingle();
+    if (data && data.datos) {
+      const cfg = data.datos;
+      for (let i=1;i<=10;i++) if (cfg['cf'+i] !== undefined) $('cf'+i).value = cfg['cf'+i];
+      if (cfg['prendas_mes']) $('prendas-mes').value = cfg['prendas_mes'];
+    }
   } catch(e) {}
 }
-function saveVentas() {
+function saveVentas() {} // no-op: ventas saved individually on insert/delete
+async function loadVentas() {
+  if (!window._uid) { ventas = []; return; }
   try {
-    localStorage.setItem('ca_ventas', JSON.stringify(ventas));
-  } catch(e) {}
-}
-function loadVentas() {
-  try {
-    ventas = JSON.parse(localStorage.getItem('ca_ventas') || '[]');
+    const { data } = await _supa.from('ventas').select('*').eq('user_id', window._uid).order('fecha', { ascending: true });
+    ventas = (data || []).map(r => ({
+      id: r.id,
+      fecha: r.fecha,
+      mesKey: r.mes_key,
+      nombre: r.nombre || '',
+      clienta: r.clienta || '',
+      whatsapp: r.whatsapp || '',
+      cantidad: r.cantidad || 1,
+      mat: Number(r.mat) || 0,
+      cuotaCF: Number(r.cuota_cf) || 0,
+      costoVar: Number(r.costo_var) || 0,
+      ganancia: Number(r.ganancia) || 0,
+      precio: Number(r.precio) || 0,
+    }));
   } catch(e) { ventas = []; }
 }
 
@@ -548,7 +568,8 @@ function calcAll() {
 }
 
 // ─── REGISTRAR VENTA ─────────────────────────────────────────
-function registrarVenta() {
+async function registrarVenta() {
+  if (!window._uid) { showToast('⚠️ Debes iniciar sesión.'); return; }
   try {
     const cf           = getCF();
     const pm           = Math.max(gv('prendas-mes'), 1);
@@ -561,23 +582,23 @@ function registrarVenta() {
     const ganancia     = subtotalGan;
     const cant         = Math.max(parseInt($('r-cant').value) || 1, 1);
     const costoVar     = mat + subtotalMano;
+    const fecha        = new Date().toISOString();
+    const mesKey       = getMesKey(new Date());
+    const nombre       = $('nombre-prenda').value || 'Prenda';
+    const clienta      = $('r-clienta').value.trim();
+    const whatsapp     = $('r-wa').value.trim();
 
-    ventas.push({
-      id:        Date.now(),
-      fecha:     new Date().toISOString(),
-      mesKey:    getMesKey(new Date()),
-      nombre:    $('nombre-prenda').value || 'Prenda',
-      clienta:   $('r-clienta').value.trim(),
-      whatsapp:  $('r-wa').value.trim(),
-      cantidad:  cant,
-      mat, cuotaCF: cuota, costoVar, ganancia, precio,
-    });
+    const { data, error } = await _supa.from('ventas').insert({
+      user_id: window._uid,
+      fecha, mes_key: mesKey, nombre, clienta, whatsapp,
+      cantidad: cant, mat, cuota_cf: cuota, costo_var: costoVar, ganancia, precio,
+    }).select('id').single();
+    if (error) throw error;
 
-    saveVentas();
+    ventas.push({ id: data.id, fecha, mesKey, nombre, clienta, whatsapp, cantidad: cant, mat, cuotaCF: cuota, costoVar, ganancia, precio });
     $('r-clienta').value = '';
     $('r-wa').value = '';
     $('r-cant').value = '1';
-
     filtroMes = 'todos';
     showToast('✅ Venta registrada — ' + cant + ' ' + (cant>1?'prendas':'prenda'));
     renderHistorial();
@@ -655,12 +676,17 @@ function renderHistorial() {
   });
 }
 
-function eliminarVenta(id) {
-  ventas = ventas.filter(v => v.id !== id);
-  saveVentas();
-  renderHistorial();
-  renderClientes();
-  renderProyeccion();
+async function eliminarVenta(id) {
+  try {
+    const { error } = await _supa.from('ventas').delete().eq('id', id).eq('user_id', window._uid);
+    if (error) throw error;
+    ventas = ventas.filter(v => v.id !== id);
+    renderHistorial();
+    renderClientes();
+    renderProyeccion();
+  } catch(e) {
+    showToast('⚠️ Error al eliminar. Intenta de nuevo.');
+  }
 }
 
 // ─── CLIENTES ────────────────────────────────────────────────
@@ -804,6 +830,16 @@ let isRecoveryMode = false;
   }
 })();
 
+async function initApp() {
+  try {
+    await Promise.all([loadConfig(), loadVentas()]);
+    calcAll();
+    renderHistorial();
+    renderClientes();
+    renderProyeccion();
+  } catch(e) { console.error('Error al inicializar:', e); }
+}
+
 _supa.auth.onAuthStateChange((event, session) => {
   if (event === 'PASSWORD_RECOVERY') {
     isRecoveryMode = true;
@@ -811,12 +847,12 @@ _supa.auth.onAuthStateChange((event, session) => {
     document.getElementById('app-content').style.display = 'none';
     showRecovery();
   } else if (session && !isRecoveryMode) {
+    window._uid = session.user.id;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-content').style.display = 'block';
     if (!appInitialized) {
       appInitialized = true;
-      try { loadConfig(); loadVentas(); calcAll(); renderHistorial(); renderClientes(); renderProyeccion(); }
-      catch(e) { console.error('Error al inicializar:', e); }
+      initApp();
     }
   } else if (!session && !isRecoveryMode) {
     document.getElementById('login-screen').style.display = 'flex';
@@ -918,6 +954,12 @@ async function handleUpdatePassword() {
 async function handleLogout() {
   if (isRecoveryMode) return;
   appInitialized = false;
+  window._uid = null;
+  ventas = [];
+  for (let i=1;i<=10;i++) $('cf'+i).value = '0';
+  $('prendas-mes').value = '30';
+  calcAll();
+  renderHistorial();
   await _supa.auth.signOut();
 }
 function authErrMsg(m) {
