@@ -173,13 +173,72 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
   .proy-stats{grid-template-columns:repeat(2,1fr);}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+<!-- ══ LOGIN ══ -->
+<div id="login-screen" style="display:none;min-height:100vh;background:var(--gris-bg);align-items:center;justify-content:center;padding:20px;flex-direction:column;">
+  <div style="width:100%;max-width:380px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--magenta),#FF6BB5);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px;box-shadow:0 4px 16px rgba(210,32,133,0.3);">✂️</div>
+      <h1 style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:var(--magenta);line-height:1.2;">Calculadora de Taller</h1>
+      <p style="color:#999;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-top:5px;">Cinthia Arena · Fashion Designer</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="icon">🔐</span><h2 id="auth-title">Iniciar sesión</h2></div>
+      <div class="card-body">
+        <div id="auth-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:14px;line-height:1.5;"></div>
+        <div id="form-login">
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Email</label>
+            <input type="email" id="auth-email" placeholder="tu@email.com" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleAuthSubmit()">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Contraseña</label>
+            <input type="password" id="auth-password" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleAuthSubmit()">
+          </div>
+          <button class="btn-registrar" id="auth-btn" onclick="handleAuthSubmit()"><span>🔑</span> <span id="auth-btn-text">Iniciar sesión</span></button>
+          <div style="text-align:center;margin-top:12px;">
+            <button onclick="showForgot()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</button>
+          </div>
+          <div class="divider" style="margin:14px 0;"></div>
+          <p style="text-align:center;font-size:11px;color:#888;">¿Primera vez aquí? <button onclick="toggleSignup()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Crear cuenta</button></p>
+        </div>
+        <div id="form-forgot" style="display:none;">
+          <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Email</label>
+            <input type="email" id="forgot-email" placeholder="tu@email.com" class="wfull" style="width:100%;background:var(--blanco);" onkeydown="if(event.key==='Enter')handleForgotPassword()">
+          </div>
+          <button class="btn-registrar" onclick="handleForgotPassword()"><span>📧</span> Enviar enlace</button>
+          <div style="text-align:center;margin-top:12px;">
+            <button onclick="showLogin()" style="background:none;border:none;color:var(--magenta);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;">← Volver al login</button>
+          </div>
+        </div>
+        <div id="form-recovery" style="display:none;">
+          <p style="font-size:12px;color:#666;margin-bottom:14px;line-height:1.5;">Ingresa tu nueva contraseña.</p>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Nueva contraseña</label>
+            <input type="password" id="new-password" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);">
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;font-weight:600;color:var(--magenta);display:block;margin-bottom:5px;">Confirmar contraseña</label>
+            <input type="password" id="confirm-password" placeholder="••••••••" class="wfull" style="width:100%;background:var(--blanco);">
+          </div>
+          <button class="btn-registrar" onclick="handleUpdatePassword()"><span>🔒</span> Guardar nueva contraseña</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app-content" style="display:none">
 <header>
   <img src="data:image/jpeg;base64,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" class="logo-img" alt="Cinthia Arena">
   <h1>Calculadora de Taller</h1>
   <p>Cinthia Arena · Fashion Designer</p>
+  <button onclick="handleLogout()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:20px;padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer;">Salir →</button>
 </header>
 
 <div class="tabs">
@@ -368,6 +427,7 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
 </div>
 
 <div class="toast" id="toast"></div>
+</div><!-- /#app-content -->
 
 <script>
 // ─── STATE ───────────────────────────────────────────────────
@@ -705,16 +765,115 @@ function showTab(id, el) {
   if (el) el.classList.add('active');
 }
 
-// ─── INIT ────────────────────────────────────────────────────
-try {
-  loadConfig();
-  loadVentas();
-  calcAll();
-  renderHistorial();
-  renderClientes();
-  renderProyeccion();
-} catch(e) {
-  console.error('Error al inicializar:', e);
+// ─── SUPABASE AUTH ────────────────────────────────────────────
+const _supa = supabase.createClient(
+  'https://sbrjmozxysqbouipwqbr.supabase.co',
+  'sb_publishable_620Hibvs1oxftChf2d2QoA_ZH-PO5DH'
+);
+let authMode = 'login';
+let appInitialized = false;
+
+_supa.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+    showRecovery();
+  } else if (session) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-content').style.display = 'block';
+    if (!appInitialized) {
+      appInitialized = true;
+      try { loadConfig(); loadVentas(); calcAll(); renderHistorial(); renderClientes(); renderProyeccion(); }
+      catch(e) { console.error('Error al inicializar:', e); }
+    }
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+  }
+});
+
+function showAuthMsg(msg, ok) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg; el.style.display = 'block';
+  el.style.background = ok ? '#D4F5E2' : '#FEE2E2';
+  el.style.color = ok ? '#1E7A45' : '#DC2626';
+}
+function clearAuthMsg() { document.getElementById('auth-msg').style.display = 'none'; }
+
+function showLogin() {
+  document.getElementById('form-login').style.display = 'block';
+  document.getElementById('form-forgot').style.display = 'none';
+  document.getElementById('form-recovery').style.display = 'none';
+  document.getElementById('auth-title').textContent = 'Iniciar sesión';
+  authMode = 'login';
+  document.getElementById('auth-btn-text').textContent = 'Iniciar sesión';
+  clearAuthMsg();
+}
+function showForgot() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-forgot').style.display = 'block';
+  document.getElementById('form-recovery').style.display = 'none';
+  document.getElementById('auth-title').textContent = 'Recuperar contraseña';
+  clearAuthMsg();
+}
+function showRecovery() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-forgot').style.display = 'none';
+  document.getElementById('form-recovery').style.display = 'block';
+  document.getElementById('auth-title').textContent = 'Nueva contraseña';
+  clearAuthMsg();
+}
+function toggleSignup() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  const s = authMode === 'signup';
+  document.getElementById('auth-title').textContent = s ? 'Crear cuenta' : 'Iniciar sesión';
+  document.getElementById('auth-btn-text').textContent = s ? 'Crear cuenta' : 'Iniciar sesión';
+  clearAuthMsg();
+}
+async function handleAuthSubmit() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  if (!email || !pass) { showAuthMsg('Completa todos los campos.', false); return; }
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true; btn.style.opacity = '0.7';
+  try {
+    const res = authMode === 'login'
+      ? await _supa.auth.signInWithPassword({ email, password: pass })
+      : await _supa.auth.signUp({ email, password: pass });
+    if (res.error) showAuthMsg(authErrMsg(res.error.message), false);
+    else if (authMode === 'signup') showAuthMsg('¡Cuenta creada! Revisa tu email para confirmar.', true);
+  } catch(e) { showAuthMsg('Error de conexión. Intenta de nuevo.', false); }
+  btn.disabled = false; btn.style.opacity = '1';
+}
+async function handleForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { showAuthMsg('Ingresa tu email.', false); return; }
+  try {
+    const { error } = await _supa.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    showAuthMsg(error ? authErrMsg(error.message) : '¡Enviado! Revisa tu email.', !error);
+  } catch(e) { showAuthMsg('Error de conexión. Intenta de nuevo.', false); }
+}
+async function handleUpdatePassword() {
+  const p1 = document.getElementById('new-password').value;
+  const p2 = document.getElementById('confirm-password').value;
+  if (p1.length < 6) { showAuthMsg('Mínimo 6 caracteres.', false); return; }
+  if (p1 !== p2) { showAuthMsg('Las contraseñas no coinciden.', false); return; }
+  try {
+    const { error } = await _supa.auth.updateUser({ password: p1 });
+    if (error) showAuthMsg(authErrMsg(error.message), false);
+    else showAuthMsg('¡Contraseña actualizada! Iniciando sesión...', true);
+  } catch(e) { showAuthMsg('Error. Intenta de nuevo.', false); }
+}
+async function handleLogout() {
+  appInitialized = false;
+  await _supa.auth.signOut();
+}
+function authErrMsg(m) {
+  if (m.includes('Invalid login credentials')) return 'Email o contraseña incorrectos.';
+  if (m.includes('Email not confirmed'))       return 'Confirma tu email antes de entrar.';
+  if (m.includes('User already registered'))   return 'Ya existe una cuenta con ese email.';
+  if (m.includes('Password should be'))        return 'La contraseña debe tener mínimo 6 caracteres.';
+  return 'Error: ' + m;
 }
 </script>
 </body>
