@@ -167,10 +167,43 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
 
 .storage-badge{display:inline-flex;align-items:center;gap:5px;background:var(--verde-bg);color:var(--verde);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;margin-top:8px;}
 
+/* ── PEDIDOS ── */
+.pedido-item{background:var(--blanco);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px var(--sombra);border-left:4px solid #F0C040;display:flex;gap:12px;align-items:flex-start;}
+.pedido-item.entregada{border-left-color:var(--verde);}
+.estado-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.estado-badge.proceso{background:#FFF2CC;color:#856404;}
+.estado-badge.entregada{background:var(--verde-bg);color:var(--verde);}
+.toggle-estado{background:none;border:1.5px solid var(--rosa);color:var(--magenta);border-radius:20px;padding:4px 11px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;}
+.toggle-estado:hover{background:var(--magenta);color:#fff;border-color:var(--magenta);}
+
+/* ── MEDIDAS ── */
+.medida-form{background:linear-gradient(135deg,#FFF0F8,var(--rosa-claro));border:2px solid var(--rosa);border-radius:14px;padding:18px;margin-bottom:18px;}
+.medida-form h3{font-family:'Playfair Display',serif;font-style:italic;font-size:15px;color:var(--magenta);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.medidas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.med-group{display:flex;flex-direction:column;gap:4px;}
+.med-group label{font-size:10px;font-weight:700;color:var(--magenta);text-transform:uppercase;letter-spacing:0.4px;}
+.med-group input{width:100%;padding:8px 10px;border:2px solid var(--rosa);border-radius:8px;font-family:'Montserrat',sans-serif;font-size:12px;background:var(--blanco);color:var(--gris-txt);outline:none;}
+.med-group input:focus{border-color:var(--magenta);}
+.med-group.span2{grid-column:1/-1;}
+.med-section-title{grid-column:1/-1;font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:6px;padding-bottom:4px;border-bottom:1px solid var(--rosa-mid);}
+.medida-card{background:var(--blanco);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px var(--sombra);border-left:4px solid var(--magenta);}
+.medida-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.medida-card-nombre{font-size:14px;font-weight:700;color:var(--gris-txt);}
+.medida-card-actions{display:flex;gap:6px;flex-shrink:0;}
+.medidas-tabla{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.med-dato{background:var(--rosa-claro);border-radius:7px;padding:6px 8px;}
+.med-dato-label{font-size:9px;color:#888;font-weight:500;}
+.med-dato-val{font-size:12px;font-weight:700;color:var(--magenta);}
+.btn-editar{background:none;border:1.5px solid var(--rosa);color:var(--magenta);border-radius:20px;padding:4px 10px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer;}
+.btn-editar:hover{background:var(--rosa-claro);}
+
 @media(max-width:480px){
   .registro-grid{grid-template-columns:1fr;}
   .totales-bar{grid-template-columns:1fr 1fr;}
   .proy-stats{grid-template-columns:repeat(2,1fr);}
+  .medidas-tabla{grid-template-columns:repeat(2,1fr);}
+  .medidas-grid{grid-template-columns:1fr;}
+  .med-section-title,.med-group.span2{grid-column:1;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -265,6 +298,8 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
   <button class="tab" onclick="showTab('fijos',this)">📋 Costos Fijos</button>
   <button class="tab" onclick="showTab('prenda',this)">👗 Por Prenda</button>
   <button class="tab" onclick="showTab('historial',this)">📦 Mis Ventas</button>
+  <button class="tab" onclick="showTab('pedidos',this)">📌 Pedidos</button>
+  <button class="tab" onclick="showTab('medidas',this)">📏 Medidas</button>
   <button class="tab" onclick="showTab('clientes',this)">👥 Clientes</button>
   <button class="tab" onclick="showTab('proyeccion',this)">📊 Proyección</button>
 </div>
@@ -285,7 +320,7 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
         <div class="ck-item"><div class="ck-dot" style="background:var(--verde-bg);border:1px solid #8FCF9B"></div>Automático</div>
         <div class="ck-item"><div class="ck-dot" style="background:var(--rosa-mid);border:1px solid var(--rosa)"></div>Derivado</div>
       </div>
-      <div class="storage-badge">💾 Tus datos se guardan automáticamente en este dispositivo</div>
+      <div class="storage-badge">☁️ Tus datos se guardan en la nube — accede desde cualquier dispositivo</div>
     </div>
   </div>
 </div>
@@ -415,6 +450,73 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
   </div>
 </div>
 
+<!-- ══ PEDIDOS ══ -->
+<div class="panel" id="tab-pedidos">
+  <div class="card">
+    <div class="card-header"><span class="icon">📌</span><h2>Pedidos y Entregas</h2></div>
+    <div class="card-body">
+      <div class="historial-filters" id="filtros-pedidos">
+        <button class="filter-btn active" onclick="filtroEstado='todos';renderPedidos()">Todos</button>
+        <button class="filter-btn" onclick="filtroEstado='en_proceso';renderPedidos()">En proceso</button>
+        <button class="filter-btn" onclick="filtroEstado='entregada';renderPedidos()">Entregadas</button>
+      </div>
+      <div id="lista-pedidos"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEDIDAS ══ -->
+<div class="panel" id="tab-medidas">
+  <div class="medida-form">
+    <h3>📏 <span id="medida-form-titulo">Nueva clienta</span></h3>
+    <div class="medidas-grid">
+      <div class="med-group span2">
+        <label>Nombre de la clienta *</label>
+        <input type="text" id="med-nombre" placeholder="Ej: María García" class="wfull">
+      </div>
+      <div class="med-group span2">
+        <label>Teléfono / WhatsApp</label>
+        <input type="text" id="med-telefono" placeholder="+1 234 567 8900" class="wfull">
+      </div>
+      <div class="med-section-title">Parte superior</div>
+      <div class="med-group"><label>Contorno de busto</label><input type="number" id="med-busto" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Contorno de cintura</label><input type="number" id="med-cintura" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Contorno de cadera</label><input type="number" id="med-cadera" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de talle</label><input type="number" id="med-largo-talle" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Ancho de espalda</label><input type="number" id="med-ancho-espalda" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de blusa</label><input type="number" id="med-largo-blusa" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Contorno de cuello</label><input type="number" id="med-cuello" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de manga</label><input type="number" id="med-largo-manga" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Escote</label><input type="number" id="med-escote" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Caída de hombros</label><input type="number" id="med-hombros" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Sisa</label><input type="number" id="med-sisa" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-section-title">Parte inferior</div>
+      <div class="med-group"><label>Tiro delantero</label><input type="number" id="med-tiro-del" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Tiro trasero</label><input type="number" id="med-tiro-tras" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de pantalón</label><input type="number" id="med-largo-pant" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de vestido</label><input type="number" id="med-largo-vest" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de blazer</label><input type="number" id="med-largo-blaz" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group"><label>Largo de falda</label><input type="number" id="med-largo-fald" placeholder="cm" step="0.5" min="0"></div>
+      <div class="med-group span2">
+        <label>Notas</label>
+        <input type="text" id="med-notas" placeholder="Observaciones especiales..." class="wfull">
+      </div>
+    </div>
+    <input type="hidden" id="med-edit-id" value="">
+    <div style="display:flex;gap:10px;">
+      <button class="btn-registrar" onclick="guardarMedida()" style="flex:1">💾 Guardar medidas</button>
+      <button id="btn-cancelar-med" onclick="cancelarEdicionMedida()" style="display:none;padding:14px 18px;background:none;border:2px solid var(--rosa);color:var(--magenta);border-radius:10px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Cancelar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header soft"><span class="icon">📋</span><h2>Medidas guardadas</h2></div>
+    <div class="card-body">
+      <input type="text" class="clientes-search" id="medidas-search" placeholder="Buscar clienta..." oninput="renderMedidas()">
+      <div id="lista-medidas"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ CLIENTES ══ -->
 <div class="panel" id="tab-clientes">
   <div class="card">
@@ -519,6 +621,7 @@ async function loadVentas() {
       costoVar: Number(r.costo_var) || 0,
       ganancia: Number(r.ganancia) || 0,
       precio: Number(r.precio) || 0,
+      estado: r.estado || 'en_proceso',
     }));
   } catch(e) { ventas = []; }
 }
@@ -592,16 +695,18 @@ async function registrarVenta() {
       user_id: window._uid,
       fecha, mes_key: mesKey, nombre, clienta, whatsapp,
       cantidad: cant, mat, cuota_cf: cuota, costo_var: costoVar, ganancia, precio,
+      estado: 'en_proceso',
     }).select('id').single();
     if (error) throw error;
 
-    ventas.push({ id: data.id, fecha, mesKey, nombre, clienta, whatsapp, cantidad: cant, mat, cuotaCF: cuota, costoVar, ganancia, precio });
+    ventas.push({ id: data.id, fecha, mesKey, nombre, clienta, whatsapp, cantidad: cant, mat, cuotaCF: cuota, costoVar, ganancia, precio, estado: 'en_proceso' });
     $('r-clienta').value = '';
     $('r-wa').value = '';
     $('r-cant').value = '1';
     filtroMes = 'todos';
     showToast('✅ Venta registrada — ' + cant + ' ' + (cant>1?'prendas':'prenda'));
     renderHistorial();
+    renderPedidos();
     renderClientes();
     renderProyeccion();
   } catch(e) {
@@ -682,6 +787,7 @@ async function eliminarVenta(id) {
     if (error) throw error;
     ventas = ventas.filter(v => v.id !== id);
     renderHistorial();
+    renderPedidos();
     renderClientes();
     renderProyeccion();
   } catch(e) {
@@ -832,11 +938,13 @@ let isRecoveryMode = false;
 
 async function initApp() {
   try {
-    await Promise.all([loadConfig(), loadVentas()]);
+    await Promise.all([loadConfig(), loadVentas(), loadMedidas()]);
     calcAll();
     renderHistorial();
+    renderPedidos();
     renderClientes();
     renderProyeccion();
+    renderMedidas();
   } catch(e) { console.error('Error al inicializar:', e); }
 }
 
@@ -957,6 +1065,7 @@ async function handleLogout() {
   appInitialized = false;
   window._uid = null;
   ventas = [];
+  medidas = [];
   for (let i=1;i<=10;i++) $('cf'+i).value = '0';
   $('prendas-mes').value = '30';
   calcAll();
@@ -969,6 +1078,177 @@ function authErrMsg(m) {
   if (m.includes('User already registered'))   return 'Ya existe una cuenta con ese email.';
   if (m.includes('Password should be'))        return 'La contraseña debe tener mínimo 6 caracteres.';
   return 'Error: ' + m;
+}
+
+// ─── PEDIDOS ─────────────────────────────────────────────────
+let filtroEstado = 'todos';
+
+async function toggleEstado(id) {
+  const v = ventas.find(x => x.id === id);
+  if (!v) return;
+  const nuevo = v.estado === 'entregada' ? 'en_proceso' : 'entregada';
+  try {
+    const { error } = await _supa.from('ventas').update({ estado: nuevo }).eq('id', id).eq('user_id', window._uid);
+    if (error) throw error;
+    v.estado = nuevo;
+    renderPedidos();
+    showToast(nuevo === 'entregada' ? '✅ Marcada como entregada' : '📌 Marcada como en proceso');
+  } catch(e) { showToast('⚠️ Error al actualizar estado.'); }
+}
+
+function renderPedidos() {
+  document.querySelectorAll('#filtros-pedidos .filter-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', filtroEstado === ['todos','en_proceso','entregada'][i]);
+  });
+  const filtradas = filtroEstado === 'todos' ? ventas : ventas.filter(v => (v.estado||'en_proceso') === filtroEstado);
+  const lista = $('lista-pedidos');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty-state"><div class="es-icon">📌</div><p>No hay pedidos aquí todavía.<br>Registra una venta en <strong>👗 Por Prenda</strong>.</p></div>';
+    return;
+  }
+  lista.innerHTML = '';
+  [...filtradas].reverse().forEach(v => {
+    const estado = v.estado || 'en_proceso';
+    const d = new Date(v.fecha);
+    const fs = d.toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+    const item = document.createElement('div');
+    item.className = 'pedido-item' + (estado==='entregada'?' entregada':'');
+    item.innerHTML = `
+      <div class="vi-icon">${estado==='entregada'?'✅':'📌'}</div>
+      <div class="vi-body">
+        <div class="vi-top">
+          <div class="vi-nombre">${v.nombre}${v.cantidad>1?' <span style="font-size:11px;color:var(--magenta)">×'+v.cantidad+'</span>':''}</div>
+          <div class="vi-precio">${usd(v.precio*v.cantidad)}</div>
+        </div>
+        <div class="vi-meta">${v.clienta?'👤 '+v.clienta+'  ':''}${v.whatsapp?'📱 '+v.whatsapp+'  ':''}📅 ${fs}</div>
+        <div class="vi-tags" style="margin-top:8px">
+          <span class="estado-badge ${estado==='entregada'?'entregada':'proceso'}">${estado==='entregada'?'✓ Entregada':'⏳ En proceso'}</span>
+          <button class="toggle-estado" onclick="toggleEstado(${v.id})">${estado==='entregada'?'Marcar en proceso':'Marcar entregada'}</button>
+        </div>
+      </div>`;
+    lista.appendChild(item);
+  });
+}
+
+// ─── MEDIDAS ─────────────────────────────────────────────────
+let medidas = [];
+const MED_CAMPOS = [
+  ['busto','contorno_busto'],['cintura','contorno_cintura'],['cadera','contorno_cadera'],
+  ['largo-talle','largo_talle'],['ancho-espalda','ancho_espalda'],['largo-blusa','largo_blusa'],
+  ['cuello','contorno_cuello'],['largo-manga','largo_manga'],['escote','escote'],
+  ['hombros','caida_hombros'],['sisa','sisa'],['tiro-del','tiro_delantero'],
+  ['tiro-tras','tiro_trasero'],['largo-pant','largo_pantalon'],['largo-vest','largo_vestido'],
+  ['largo-blaz','largo_blazer'],['largo-fald','largo_falda'],
+];
+const MED_LABELS = {
+  contorno_busto:'Busto', contorno_cintura:'Cintura', contorno_cadera:'Cadera',
+  largo_talle:'Talle', ancho_espalda:'Espalda', largo_blusa:'Blusa',
+  contorno_cuello:'Cuello', largo_manga:'Manga', escote:'Escote',
+  caida_hombros:'Hombros', sisa:'Sisa', tiro_delantero:'Tiro del.',
+  tiro_trasero:'Tiro tras.', largo_pantalon:'Pantalón', largo_vestido:'Vestido',
+  largo_blazer:'Blazer', largo_falda:'Falda',
+};
+
+async function loadMedidas() {
+  if (!window._uid) { medidas = []; return; }
+  try {
+    const { data } = await _supa.from('medidas').select('*').eq('user_id', window._uid).order('clienta', { ascending: true });
+    medidas = data || [];
+  } catch(e) { medidas = []; }
+}
+
+async function guardarMedida() {
+  const nombre = $('med-nombre').value.trim();
+  if (!nombre) { showToast('⚠️ Escribe el nombre de la clienta.'); return; }
+  if (!window._uid) return;
+  const row = { user_id: window._uid, clienta: nombre, telefono: $('med-telefono').value.trim(), notas: $('med-notas').value.trim() };
+  MED_CAMPOS.forEach(([htmlId, col]) => { const v = parseFloat($('med-'+htmlId).value); row[col] = isNaN(v) ? null : v; });
+  try {
+    const editId = $('med-edit-id').value;
+    if (editId) {
+      const { error } = await _supa.from('medidas').update(row).eq('id', editId).eq('user_id', window._uid);
+      if (error) throw error;
+      const idx = medidas.findIndex(m => m.id == editId);
+      if (idx >= 0) medidas[idx] = { ...medidas[idx], ...row };
+      showToast('✅ Medidas actualizadas');
+    } else {
+      const { data, error } = await _supa.from('medidas').insert(row).select('id').single();
+      if (error) throw error;
+      medidas.push({ ...row, id: data.id });
+      showToast('✅ Medidas guardadas');
+    }
+    limpiarFormMedida();
+    renderMedidas();
+  } catch(e) { showToast('⚠️ Error al guardar. Intenta de nuevo.'); }
+}
+
+function editarMedida(id) {
+  const m = medidas.find(x => x.id === id);
+  if (!m) return;
+  $('med-nombre').value = m.clienta || '';
+  $('med-telefono').value = m.telefono || '';
+  $('med-notas').value = m.notas || '';
+  MED_CAMPOS.forEach(([htmlId, col]) => { $('med-'+htmlId).value = m[col] != null ? m[col] : ''; });
+  $('med-edit-id').value = id;
+  $('medida-form-titulo').textContent = 'Editar — ' + m.clienta;
+  $('btn-cancelar-med').style.display = 'block';
+  document.getElementById('tab-medidas').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelarEdicionMedida() { limpiarFormMedida(); }
+
+function limpiarFormMedida() {
+  $('med-nombre').value = '';
+  $('med-telefono').value = '';
+  $('med-notas').value = '';
+  MED_CAMPOS.forEach(([htmlId]) => { $('med-'+htmlId).value = ''; });
+  $('med-edit-id').value = '';
+  $('medida-form-titulo').textContent = 'Nueva clienta';
+  $('btn-cancelar-med').style.display = 'none';
+}
+
+async function eliminarMedida(id) {
+  if (!confirm('¿Eliminar las medidas de esta clienta?')) return;
+  try {
+    const { error } = await _supa.from('medidas').delete().eq('id', id).eq('user_id', window._uid);
+    if (error) throw error;
+    medidas = medidas.filter(m => m.id !== id);
+    renderMedidas();
+    showToast('🗑️ Medidas eliminadas');
+  } catch(e) { showToast('⚠️ Error al eliminar.'); }
+}
+
+function renderMedidas() {
+  const busq = ($('medidas-search').value || '').toLowerCase();
+  const filtradas = medidas.filter(m => !busq || (m.clienta||'').toLowerCase().includes(busq));
+  const lista = $('lista-medidas');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty-state"><div class="es-icon">📏</div><p>No hay medidas guardadas todavía.<br>Agrega la primera clienta arriba.</p></div>';
+    return;
+  }
+  lista.innerHTML = '';
+  filtradas.forEach(m => {
+    const datosHTML = Object.entries(MED_LABELS)
+      .filter(([col]) => m[col] != null && m[col] !== '')
+      .map(([col, lbl]) => `<div class="med-dato"><div class="med-dato-label">${lbl}</div><div class="med-dato-val">${m[col]} cm</div></div>`)
+      .join('');
+    const card = document.createElement('div');
+    card.className = 'medida-card';
+    card.innerHTML = `
+      <div class="medida-card-header">
+        <div>
+          <div class="medida-card-nombre">👤 ${m.clienta}</div>
+          ${m.telefono?'<div style="font-size:11px;color:#888;margin-top:2px">📱 '+m.telefono+'</div>':''}
+        </div>
+        <div class="medida-card-actions">
+          <button class="btn-editar" onclick="editarMedida(${m.id})">✏️ Editar</button>
+          <button class="delete-btn" onclick="eliminarMedida(${m.id})" title="Eliminar">✕</button>
+        </div>
+      </div>
+      ${datosHTML?'<div class="medidas-tabla">'+datosHTML+'</div>':''}
+      ${m.notas?'<div style="font-size:11px;color:#888;margin-top:8px;padding:6px 8px;background:var(--amarillo);border-radius:6px">📝 '+m.notas+'</div>':''}`;
+    lista.appendChild(card);
+  });
 }
 
 // Copiar logo del header al login
