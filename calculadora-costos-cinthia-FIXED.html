@@ -169,10 +169,10 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
 
 /* ── PEDIDOS ── */
 .pedido-item{background:var(--blanco);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px var(--sombra);border-left:4px solid #F0C040;display:flex;gap:12px;align-items:flex-start;}
-.pedido-item.entregada{border-left-color:var(--verde);}
+.pedido-item.entregada{border-left-color:var(--magenta);background:linear-gradient(135deg,#FFF0F8,var(--blanco));}
 .estado-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
 .estado-badge.proceso{background:#FFF2CC;color:#856404;}
-.estado-badge.entregada{background:var(--verde-bg);color:var(--verde);}
+.estado-badge.entregada{background:var(--magenta);color:#fff;}
 .toggle-estado{background:none;border:1.5px solid var(--rosa);color:var(--magenta);border-radius:20px;padding:4px 11px;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;}
 .toggle-estado:hover{background:var(--magenta);color:#fff;border-color:var(--magenta);}
 
@@ -1084,7 +1084,7 @@ function authErrMsg(m) {
 let filtroEstado = 'todos';
 
 async function toggleEstado(id) {
-  const v = ventas.find(x => x.id === id);
+  const v = ventas.find(x => x.id == id);
   if (!v) return;
   const nuevo = v.estado === 'entregada' ? 'en_proceso' : 'entregada';
   try {
@@ -1093,7 +1093,10 @@ async function toggleEstado(id) {
     v.estado = nuevo;
     renderPedidos();
     showToast(nuevo === 'entregada' ? '✅ Marcada como entregada' : '📌 Marcada como en proceso');
-  } catch(e) { showToast('⚠️ Error al actualizar estado.'); }
+  } catch(e) {
+    console.error('toggleEstado error:', e);
+    showToast('⚠️ Error al actualizar. Verifica que corriste el SQL de la columna estado.');
+  }
 }
 
 function renderPedidos() {
