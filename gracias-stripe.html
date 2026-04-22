@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Inscripción Confirmada! — Cinthia Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --magenta: #d22085;
+            --rosa: #ffb5da;
+            --rosa-claro: #ffe8f2;
+            --blanco: #ffffff;
+            --texto: #3d1a2e;
+            --texto-light: #555555;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f9f9f9;
+            color: var(--texto);
+            line-height: 1.6;
+        }
+
+        /* ── BANNER SUPERIOR ── */
+        .banner-top {
+            background: var(--rosa);
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--texto);
+            letter-spacing: 0.3px;
+        }
+
+        .banner-top strong { color: var(--magenta); }
+
+        /* ── HERO ── */
+        .hero {
+            background: #ffffff;
+            padding: 52px 24px 56px;
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(26px, 5vw, 42px);
+            font-weight: 700;
+            font-style: italic;
+            color: var(--texto);
+            line-height: 1.25;
+            margin-bottom: 36px;
+        }
+
+        /* ── BOTÓN WHATSAPP VIP ── */
+        .btn-grupo {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--magenta);
+            color: var(--blanco);
+            text-decoration: none;
+            padding: 18px 36px;
+            border-radius: 60px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(210, 32, 133, 0.35);
+            margin-bottom: 32px;
+        }
+
+        .btn-grupo:hover {
+            background: #a5006a;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(210, 32, 133, 0.4);
+        }
+
+        .btn-grupo .arrow-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--blanco);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-grupo .arrow-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--magenta);
+        }
+
+        /* ── TEXTO DEBAJO DEL BOTÓN ── */
+        .hero-desc {
+            font-size: 15px;
+            color: var(--texto-light);
+            line-height: 1.8;
+            margin-bottom: 36px;
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ── BENEFICIOS ── */
+        .beneficios {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .beneficio {
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--texto);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .beneficio strong {
+            font-weight: 700;
+            color: var(--texto);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        @media (max-width: 480px) {
+            .btn-grupo { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BANNER SUPERIOR -->
+    <div class="banner-top">
+        <strong>Inscripción confirmada</strong> al taller Método secreto costos y precios.
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Ahora solo falta un paso para que no corras el riesgo de perder el taller Método secreto costos y precios de Cinthia Arena.</h1>
+
+        <a href="https://chat.whatsapp.com/GuHLvQBRrao3064mDCtI4W?mode=gi_t" class="btn-grupo" target="_blank" rel="noopener">
+            Entrar al grupo VIP en WhatsApp
+            <span class="arrow-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+            </span>
+        </a>
+
+        <p class="hero-desc">
+            Para no perderte ninguno de los secretos que revelaré en el taller Modista 2.0 y los materiales exclusivos, debes estar en el grupo.
+        </p>
+
+        <div class="beneficios">
+            <p class="beneficio"><strong>Acceso directo</strong> a los links de las clases.</p>
+            <p class="beneficio"><strong>Materiales complementarios</strong> del taller.</p>
+            <p class="beneficio"><strong>Alertas de contenido</strong> de última hora.</p>
+        </div>
+    </section>
+
+    <footer>© Cinthia Arena · Taller Modista 2.0</footer>
+
+</body>
+</html>
