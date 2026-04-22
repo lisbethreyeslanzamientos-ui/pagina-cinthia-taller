@@ -1085,18 +1085,37 @@ let filtroEstado = 'todos';
 
 async function toggleEstado(id) {
   const v = ventas.find(x => String(x.id) === String(id));
-  if (!v) { console.warn('venta no encontrada, id:', id, 'ids en array:', ventas.map(x=>x.id)); return; }
-  const nuevo = v.estado === 'entregada' ? 'en_proceso' : 'entregada';
+  if (!v) return;
+  const anterior = v.estado || 'en_proceso';
+  const nuevo = anterior === 'entregada' ? 'en_proceso' : 'entregada';
+
+  // Actualización optimista: cambia en pantalla de inmediato
+  v.estado = nuevo;
+  renderPedidos();
+
   try {
-    const { error } = await _supa.from('ventas').update({ estado: nuevo }).eq('id', String(id)).eq('user_id', window._uid);
+    const { data, error } = await _supa
+      .from('ventas')
+      .update({ estado: nuevo })
+      .eq('id', id)
+      .select('id, estado');
+
     if (error) throw error;
-    await loadVentas();
-    renderPedidos();
-    renderHistorial();
+
+    if (!data || data.length === 0) {
+      // Supabase no actualizó ninguna fila (problema de RLS o columna)
+      v.estado = anterior;
+      renderPedidos();
+      showToast('⚠️ No se guardó en Supabase. Verifica que corriste el SQL de la columna estado.');
+      return;
+    }
+
     showToast(nuevo === 'entregada' ? '✅ Marcada como entregada' : '📌 Marcada como en proceso');
   } catch(e) {
-    console.error('toggleEstado error:', e);
-    showToast('⚠️ Error: ' + (e?.message || 'No se pudo actualizar el estado'));
+    // Revertir en caso de error
+    v.estado = anterior;
+    renderPedidos();
+    showToast('⚠️ Error: ' + (e?.message || JSON.stringify(e)));
   }
 }
 
