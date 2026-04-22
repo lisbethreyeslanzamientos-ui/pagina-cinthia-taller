@@ -1084,18 +1084,19 @@ function authErrMsg(m) {
 let filtroEstado = 'todos';
 
 async function toggleEstado(id) {
-  const v = ventas.find(x => x.id == id);
-  if (!v) return;
+  const v = ventas.find(x => String(x.id) === String(id));
+  if (!v) { console.warn('venta no encontrada, id:', id, 'ids en array:', ventas.map(x=>x.id)); return; }
   const nuevo = v.estado === 'entregada' ? 'en_proceso' : 'entregada';
   try {
-    const { error } = await _supa.from('ventas').update({ estado: nuevo }).eq('id', id).eq('user_id', window._uid);
+    const { error } = await _supa.from('ventas').update({ estado: nuevo }).eq('id', String(id)).eq('user_id', window._uid);
     if (error) throw error;
-    v.estado = nuevo;
+    await loadVentas();
     renderPedidos();
+    renderHistorial();
     showToast(nuevo === 'entregada' ? '✅ Marcada como entregada' : '📌 Marcada como en proceso');
   } catch(e) {
     console.error('toggleEstado error:', e);
-    showToast('⚠️ Error al actualizar. Verifica que corriste el SQL de la columna estado.');
+    showToast('⚠️ Error: ' + (e?.message || 'No se pudo actualizar el estado'));
   }
 }
 
