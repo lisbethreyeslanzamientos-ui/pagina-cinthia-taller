@@ -456,9 +456,9 @@ input.wfull{width:100%;text-align:left;font-weight:500;color:var(--gris-txt);}
     <div class="card-header"><span class="icon">📌</span><h2>Pedidos y Entregas</h2></div>
     <div class="card-body">
       <div class="historial-filters" id="filtros-pedidos">
-        <button class="filter-btn active" onclick="filtroEstado='todos';renderPedidos()">Todos</button>
-        <button class="filter-btn" onclick="filtroEstado='en_proceso';renderPedidos()">En proceso</button>
-        <button class="filter-btn" onclick="filtroEstado='entregada';renderPedidos()">Entregadas</button>
+        <button class="filter-btn active" data-filtro="todos">Todos</button>
+        <button class="filter-btn" data-filtro="en_proceso">En proceso</button>
+        <button class="filter-btn" data-filtro="entregada">Entregadas</button>
       </div>
       <div id="lista-pedidos"></div>
     </div>
@@ -1146,7 +1146,7 @@ function renderPedidos() {
         <div class="vi-meta">${v.clienta?'👤 '+v.clienta+'  ':''}${v.whatsapp?'📱 '+v.whatsapp+'  ':''}📅 ${fs}</div>
         <div class="vi-tags" style="margin-top:8px">
           <span class="estado-badge ${estado==='entregada'?'entregada':'proceso'}">${estado==='entregada'?'✓ Entregada':'⏳ En proceso'}</span>
-          <button class="toggle-estado" onclick="toggleEstado(${v.id})">${estado==='entregada'?'Marcar en proceso':'Marcar entregada'}</button>
+          <button class="toggle-estado" data-vid="${v.id}">${estado==='entregada'?'Marcar en proceso':'Marcar entregada'}</button>
         </div>
       </div>`;
     lista.appendChild(item);
@@ -1273,6 +1273,23 @@ function renderMedidas() {
     lista.appendChild(card);
   });
 }
+
+// ─── EVENT LISTENERS (evita problemas con onclick inline en GHL) ─────────────
+document.getElementById('lista-pedidos').addEventListener('click', function(e) {
+  const btn = e.target.closest('.toggle-estado');
+  if (btn) {
+    const vid = btn.getAttribute('data-vid');
+    if (vid) toggleEstado(vid);
+  }
+});
+
+document.getElementById('filtros-pedidos').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-filtro]');
+  if (btn) {
+    filtroEstado = btn.getAttribute('data-filtro');
+    renderPedidos();
+  }
+});
 
 // Copiar logo del header al login
 (function() {
